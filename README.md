@@ -6,7 +6,7 @@ A collection of [Agent Skills](https://agentskills.io) that help business users,
 
 | Skill | Description |
 |-------|-------------|
-| [wlb-test-engineer](skills/wlb-test-engineer/) | Analyze business requirements and generate test scenarios, test cases, and test data |
+| [wlb-test-engineer](skills/wlb-test-engineer/) | Design test cases using Boundary Value Analysis for requirements with numeric inputs |
 
 ## Installation
 
@@ -32,10 +32,10 @@ cp -r skills/wlb-test-engineer .agents/skills/wlb-test-engineer
 
 Once installed, ask your agent something like:
 
-- "Analyze this requirement and generate test cases"
-- "What test scenarios should we cover for this feature?"
-- "Generate test data for this user story"
-- "Review my acceptance criteria for testability"
+- "Test this requirement using boundary value analysis"
+- "Find boundary values for this numeric field"
+- "Generate BVA test cases for this user story"
+- "What are the boundary test cases for age 18-65?"
 
 ## Adding a new skill
 

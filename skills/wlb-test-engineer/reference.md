@@ -1,72 +1,54 @@
-# Test Case Design Techniques Reference
+# Boundary Value Analysis Reference
 
-This file provides additional detail on test design techniques. Load this reference
-when the user asks for deeper coverage or when dealing with complex requirements.
+This file provides detailed guidance on the Boundary Value Analysis (BVA) technique.
+Load this reference when the user needs deeper explanation or when dealing with
+complex numeric boundaries.
 
-## Equivalence Partitioning
+## What is Boundary Value Analysis?
 
-Divide input data into groups (partitions) where the system is expected to behave
-the same way. Test one representative value from each partition.
+BVA is a test design technique that focuses on values at the edges of input ranges.
+Defects are more likely to occur at boundaries than in the middle of a range.
 
-**Example**: Age field accepting 18-65
-- Valid partition: 18-65 (test with 30)
-- Invalid partition below: 0-17 (test with 10)
-- Invalid partition above: 66+ (test with 70)
+## How to identify boundaries
 
-## Boundary Value Analysis
+Given a valid range **[min, max]** for a numeric field:
 
-Test at the exact edges of equivalence partitions. Defects cluster at boundaries.
+| Position    | Value   | Classification |
+|-------------|---------|----------------|
+| Below Min   | min - 1 | Invalid        |
+| Min (on)    | min     | Valid          |
+| Above Min   | min + 1 | Valid          |
+| Below Max   | max - 1 | Valid          |
+| Max (on)    | max     | Valid          |
+| Above Max   | max + 1 | Invalid        |
 
-**Example**: Age field accepting 18-65
-- Test: 17, 18, 19, 64, 65, 66
+## Handling different numeric types
 
-## Decision Table Testing
+### Integers
+Use ±1 as the step. Example: range 1-100 → test 0, 1, 2, 99, 100, 101.
 
-Use when a requirement has multiple conditions that combine to produce different outcomes.
+### Decimals / Currency
+Use the smallest meaningful unit. Example: price 0.01-999.99 → test 0.00, 0.01, 0.02,
+999.98, 999.99, 1000.00.
 
-| Condition A | Condition B | Expected Outcome |
-|-------------|-------------|------------------|
-| True        | True        | Action 1         |
-| True        | False       | Action 2         |
-| False       | True        | Action 3         |
-| False       | False       | Action 4         |
+### Percentages
+Typically 0-100. Test: -1, 0, 1, 99, 100, 101. Watch for whether 0 and 100 are
+inclusive or exclusive.
 
-## State Transition Testing
+## Multiple numeric fields
 
-Use when the system has distinct states and defined transitions between them.
+When a requirement has multiple numeric inputs:
 
-1. Identify all states
-2. Identify valid transitions
-3. Test each valid transition
-4. Test invalid transitions (attempting actions not allowed in a given state)
+1. **Test each field independently first** — vary one field at a time while keeping
+   others at a typical valid value.
+2. **Note field interactions** — if the requirement states rules that combine fields
+   (e.g., "total = price × quantity, must not exceed 10,000"), also test boundary
+   combinations.
 
-**Example**: Order status
-```
-Draft -> Submitted -> Approved -> Fulfilled -> Closed
-                   -> Rejected -> Draft (revision)
-```
+## Common boundary pitfalls
 
-Invalid: Draft -> Fulfilled (skipping approval)
-
-## Pairwise / Combinatorial Testing
-
-When there are many input parameters, testing all combinations is infeasible.
-Pairwise testing covers every pair of parameter values at least once, reducing
-the number of test cases while catching most interaction defects.
-
-Use this when:
-- There are 3+ independent input fields
-- Full combinatorial coverage would produce hundreds of cases
-- The user needs a practical subset
-
-## User Story Test Derivation
-
-Given a user story in the format:
-> As a [role], I want [goal], so that [benefit]
-
-Derive tests by asking:
-1. What does the happy path look like for this goal?
-2. What happens when the goal cannot be achieved? (error cases)
-3. What are the limits of the goal? (boundary cases)
-4. Are there different variations of the role? (access control)
-5. What other features does this interact with? (integration)
+- **Off-by-one errors** — the most common defect BVA catches
+- **Inclusive vs exclusive ranges** — "greater than 0" vs "greater than or equal to 0"
+- **Zero as a boundary** — often a special case (division, empty quantity)
+- **Negative numbers** — check if negative values are possible and how they're handled
+- **Maximum system limits** — integer overflow, max database column size
