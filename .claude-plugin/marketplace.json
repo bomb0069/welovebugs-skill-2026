@@ -1,0 +1,14 @@
+{
+  "name": "wlb-skills",
+  "displayName": "WLB Skills Collection",
+  "description": "A collection of skills that help business users analyze requirements and generate test scenarios, test cases, and test data.",
+  "version": "1.0.0",
+  "author": "bomb0069",
+  "skills": [
+    {
+      "name": "wlb-test-engineer",
+      "path": "skills/wlb-test-engineer",
+      "description": "Analyze business requirements and generate test scenarios, test cases, and test data."
+    }
+  ]
+}
