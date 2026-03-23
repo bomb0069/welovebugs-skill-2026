@@ -17,10 +17,22 @@ artifacts are `SKILL.md` files under `skills/`.
 .claude-plugin/
 └── marketplace.json          # Plugin manifest listing all skills
 skills/
-└── wlb-test-engineer/
-    ├── SKILL.md              # Skill metadata + instructions
-    ├── reference.md          # Test design techniques (BVA, equivalence partitioning, etc.)
-    └── test-case-template.md # Reusable output template
+├── wlb-test-engineer/
+│   ├── SKILL.md                  # Workflow router + common rules
+│   ├── bva-workflow.md           # Workflow A: Boundary Value Analysis (numeric inputs)
+│   ├── ep-workflow.md            # Workflow B: Equivalence Partitioning (non-numeric inputs)
+│   ├── multi-condition-workflow.md   # Workflow C: Multi-Condition (mixed BVA + EP)
+│   ├── state-transition-workflow.md # Workflow D: State Transition Testing
+│   ├── reference.md              # BVA technique reference
+│   └── test-case-template.md     # Reusable output template
+└── wlb-sdet/
+    ├── SKILL.md                  # SDET skill — converts test cases to unit test code
+    ├── java-springboot-guide.md  # Java Spring Boot (JUnit 5 + Mockito)
+    ├── kotlin-springboot-guide.md # Kotlin Spring Boot (JUnit 5 + MockK)
+    ├── typescript-guide.md       # TypeScript/JavaScript (Jest / Vitest)
+    ├── python-guide.md           # Python (pytest)
+    ├── go-guide.md               # Go (testing + testify)
+    └── csharp-guide.md           # C# / .NET (xUnit + Moq)
 ```
 
 ## Agent Skills format

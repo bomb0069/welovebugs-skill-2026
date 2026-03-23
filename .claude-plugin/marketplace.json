@@ -8,7 +8,12 @@
     {
       "name": "wlb-test-engineer",
       "path": "skills/wlb-test-engineer",
-      "description": "Design test cases using Boundary Value Analysis for requirements with numeric inputs."
+      "description": "Design test cases using BVA, Equivalence Partitioning, Multi-Condition Analysis, or State Transition Testing."
+    },
+    {
+      "name": "wlb-sdet",
+      "path": "skills/wlb-sdet",
+      "description": "Convert test cases into unit test code. Supports Java, Kotlin, TypeScript/JS, Python, Go, and C#/.NET."
     }
   ]
 }
