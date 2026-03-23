@@ -185,32 +185,36 @@ For **Workflow C (Multi-Condition)**, save everything in **one requirement file*
 ## Condition Analysis
 
 ### C1: <condition name> (BVA/EP)
-<Analysis, diagram, test values>
+<Analysis, diagram>
+#### C1 Unit Test Cases
+<Per-condition test cases: C1-UT01, C1-UT02, ...>
 
 ### C2: <condition name> (BVA/EP)
-<Analysis, diagram, test values>
+<Analysis, diagram>
+#### C2 Unit Test Cases
+<Per-condition test cases: C2-UT01, C2-UT02, ...>
 
 ### C3: ...
 
-## Decision Table
+## Decision Table / Sequential Flowchart
 
-<Decision Table from Step 3b>
+<Decision Table from Step 3b or Sequential flowchart from Step 3b>
 
-## Expanded Decision Table
+## Expanded Decision Table / Sequential Test Scenarios
 
-<Expanded Decision Table with test data from Step 3c>
+<Expanded table with test data from Step 3c>
 
 ## Real-world Representative Data
 
 <Tables from Step 4>
 
-## Unit Test Cases (Decision Table: BVA + EP)
+## Test Scenarios (TS-xx)
 
-<Table 1 from Step 5 — with Rule column tracing back to Decision Table>
+<Merged test scenarios — all conditions combined with technique values>
 
-## Acceptance Test Cases (Business Scenarios)
+## Acceptance Test Scenarios (ATS-xx)
 
-<Table 2 from Step 5 — with Rule column>
+<Merged test scenarios — all conditions combined with real-world values>
 ```
 
 For **Workflow D (State Transition)**:
