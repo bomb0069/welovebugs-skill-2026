@@ -1,0 +1,696 @@
+{
+  "skill_name": "wlb-test-engineer",
+  "eval_config": {
+    "skill_path": "skills/wlb-test-engineer",
+    "grader_model": "claude-sonnet-4-6",
+    "temperature": 0,
+    "grader_runs": 3,
+    "output_dir": "evals/wlb-test-engineer/results"
+  },
+  "evals": [
+    {
+      "id": "R01",
+      "type": "multi_turn",
+      "name": "Routing: single numeric → BVA",
+      "turns": [
+        { "role": "user", "content": "Customers must be between 18 and 65 years old to register for the service.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "identifies exactly 1 condition about age and classifies it as numeric" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "BVA" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "★" },
+        { "turn": "analysis", "type": "llm_graded", "check": "shows all four workflow options A (BVA), B (EP), C (Multi-Condition), D (State Transition)" },
+        { "turn": "analysis", "type": "llm_graded", "check": "presents a condition table with columns including #, Condition, Field, Type, Technique" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "R02",
+      "type": "multi_turn",
+      "name": "Routing: single non-numeric → EP",
+      "turns": [
+        { "role": "user", "content": "The system accepts documents in PDF, DOCX, and XLSX formats. All other file types should be rejected with an error message.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "B", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "identifies exactly 1 condition about file format/type and classifies it as non-numeric or category" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "EP" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "★" },
+        { "turn": "analysis", "type": "llm_graded", "check": "shows all four workflow options A, B, C, D" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "R03",
+      "type": "multi_turn",
+      "name": "Routing: mixed conditions → Multi-Condition",
+      "turns": [
+        { "role": "user", "content": "Loan eligibility: applicant must be 21-60 years old, have an income of at least 30,000 THB per month, and hold either Thai nationality or permanent residency.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "identifies 3 conditions: age (numeric/BVA), income (numeric/BVA), nationality (non-numeric/EP)" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "★" },
+        { "turn": "analysis", "type": "llm_graded", "check": "recommends workflow C (Multi-Condition) and shows condition table with all 3 conditions" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "R04",
+      "type": "multi_turn",
+      "name": "Routing: state language → State Transition",
+      "turns": [
+        { "role": "user", "content": "A leave request starts as Draft. The employee submits it, changing status to Pending Approval. The manager can Approve or Reject it. If rejected, the employee can edit and resubmit. Approved requests move to Confirmed.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "D", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "detects state/transition language and identifies states: Draft, Pending Approval, Approved, Rejected, Confirmed" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_contains", "value": "★" },
+        { "turn": "analysis", "type": "llm_graded", "check": "recommends workflow D and shows state summary table (not condition table)" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "R05",
+      "type": "multi_turn",
+      "name": "Routing: two numeric conditions → Multi-Condition not BVA",
+      "turns": [
+        { "role": "user", "content": "Product pricing: items weighing between 0.5 kg and 30 kg cost 50 THB for shipping. Items priced over 5,000 THB get free shipping regardless of weight.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "identifies 2 conditions (weight and price), classifies both as numeric/BVA" },
+        { "turn": "analysis", "type": "deterministic", "check": "response_not_contains", "value": "★ Recommended for this requirement (1" },
+        { "turn": "analysis", "type": "llm_graded", "check": "recommends workflow C (not A), because there are 2 conditions" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "R06",
+      "type": "multi_turn",
+      "name": "Routing: user overrides recommendation",
+      "turns": [
+        { "role": "user", "content": "Customers must be between 18 and 65 years old to register for the service.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "override" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "recommends workflow A (BVA) with ★ marker for single numeric condition" }
+      ],
+      "final_assertions": [
+        { "type": "llm_graded", "check": "after user selects C, skill proceeds with multi-condition workflow without complaint or pushback" }
+      ]
+    },
+    {
+      "id": "R07",
+      "type": "multi_turn",
+      "name": "Routing: informal language extraction",
+      "turns": [
+        { "role": "user", "content": "We need to make sure that only Gold and Platinum members can access the VIP lounge. Silver and Basic members should see a message saying they need to upgrade.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "B", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "extracts testable condition about membership level from informal language" },
+        { "turn": "analysis", "type": "llm_graded", "check": "classifies as non-numeric/category and recommends EP" },
+        { "turn": "analysis", "type": "llm_graded", "check": "does not assume additional unstated rules beyond what the requirement says" }
+      ],
+      "final_assertions": []
+    },
+
+    {
+      "id": "BVA01",
+      "type": "multi_turn",
+      "name": "BVA: basic age range with integer boundaries",
+      "turns": [
+        { "role": "user", "content": "Users must be between 18 and 65 years old to create an account.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "1", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "Typical users are 25, 35, and 50. Underage attempts happen from 15-year-olds. Some elderly users are 70.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "unit_question", "type": "deterministic", "check": "response_contains_question_mark" },
+        { "turn": "unit_question", "type": "llm_graded", "check": "offers numbered options for one unit (e.g., 1→ 1 year, 2→ 1 day)" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "17" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "18" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "19" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "64" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "65" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "66" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "shows ASCII boundary diagram with valid/invalid markers and all 6 boundary points plotted" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "lists test possibilities with correct classifications: 17→Invalid, 18→Valid, 19→Valid, 64→Valid, 65→Valid, 66→Invalid" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "each test case has specific behavior description, not just pass/fail" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_not_contains", "value": "UT-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "UT-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "AT-01" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table uses boundary values (17,18,19,64,65,66) and AT table uses real-world values (25,35,50,15,70)" },
+        { "turn": "final_output", "type": "llm_graded", "check": "both tables have two-level column headers: Level 1 repeats Input/Output, Level 2 shows field names" },
+        { "turn": "final_output", "type": "llm_graded", "check": "Type column uses exactly Valid or Invalid, not Pass/Fail" },
+        { "turn": "final_output", "type": "llm_graded", "check": "Test Descriptions are human-readable sentences" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "UT-01" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "AT-01" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "Workflow A" }
+      ]
+    },
+    {
+      "id": "BVA02",
+      "type": "multi_turn",
+      "name": "BVA: decimal range with currency",
+      "turns": [
+        { "role": "user", "content": "The minimum deposit amount is 100.00 THB and the maximum is 50,000.00 THB.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "3", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "Most customers deposit 500, 1000, or 5000 THB. Some try small amounts like 50 THB.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "unit_question", "type": "llm_graded", "check": "offers 0.01 as a unit option for currency/decimal precision" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "99.99" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "100.00" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "100.01" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "50,000.00" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table uses exact decimal boundary values, AT table uses real-world values (500, 1000, 5000, 50)" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "BVA03",
+      "type": "multi_turn",
+      "name": "BVA: single-sided boundary (min only)",
+      "turns": [
+        { "role": "user", "content": "Order quantity must be at least 1 item. There is no maximum limit.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "1", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "Customers usually order 2-5 items. Bulk orders can be 100+.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "0" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "1" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "2" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "generates only 3 boundary points for lower bound (0,1,2), does NOT fabricate an upper boundary" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "boundary diagram shows open-ended valid region on the upper side" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "BVA04",
+      "type": "multi_turn",
+      "name": "BVA: skip real-world data pushback",
+      "turns": [
+        { "role": "user", "content": "Passengers aged 2–11 qualify for child fare.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "1", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "skip", "label": "skip_first" },
+        { "role": "assistant", "label": "pushback" },
+        { "role": "user", "content": "skip", "label": "skip_insist" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "pushback", "type": "llm_graded", "check": "pushes back and asks again for real-world data, does not accept first skip immediately" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "TBD" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "⚠️" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "UT-01" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table is complete with boundary values (1,2,3,10,11,12), AT table cells marked with ⚠️ TBD" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "TBD" }
+      ]
+    },
+
+    {
+      "id": "EP01",
+      "type": "multi_turn",
+      "name": "EP: simple category — independent",
+      "turns": [
+        { "role": "user", "content": "The system supports three payment methods: Credit Card, Bank Transfer, and QR Payment. Any other payment method should be rejected.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "B", "label": "workflow_selection" },
+        { "role": "assistant", "label": "partition_ask" },
+        { "role": "user", "content": "Yes, the partitions are correct", "label": "partition_confirm" },
+        { "role": "assistant", "label": "independent_ask" },
+        { "role": "user", "content": "1", "label": "independent_confirm" },
+        { "role": "assistant", "label": "realworld_ask" },
+        { "role": "user", "content": "Most customers use QR Payment. Some use credit cards. Occasionally someone tries PayPal or cash on delivery.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "partition_ask", "type": "llm_graded", "check": "identifies valid partition {Credit Card, Bank Transfer, QR Payment} and invalid partition {any other method}" },
+        { "turn": "partition_ask", "type": "llm_graded", "check": "shows nested box ASCII diagram with valid and invalid territories" },
+        { "turn": "independent_ask", "type": "llm_graded", "check": "asks whether fields are independent or combined" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "UT-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "AT-01" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table covers all valid partitions plus at least one invalid partition" },
+        { "turn": "final_output", "type": "llm_graded", "check": "AT table uses real-world data: QR Payment, Credit Card, PayPal, cash on delivery" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "Workflow B" }
+      ]
+    },
+    {
+      "id": "EP02",
+      "type": "multi_turn",
+      "name": "EP: multiple fields — combined partitions",
+      "turns": [
+        { "role": "user", "content": "User role determines access level:\n- Admin users can access all modules\n- Editor users can access Content and Media modules only\n- Viewer users can only access Content module in read-only mode\nThe system also has a maintenance mode. In maintenance mode, only Admin users can log in.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "B", "label": "workflow_selection" },
+        { "role": "assistant", "label": "partition_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "partition_confirm" },
+        { "role": "assistant", "label": "independent_ask" },
+        { "role": "user", "content": "2", "label": "combined_confirm" },
+        { "role": "assistant", "label": "combined_analysis_and_realworld_ask" },
+        { "role": "user", "content": "Most users are Editors during normal operation. Maintenance happens monthly.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "independent_ask", "type": "llm_graded", "check": "asks whether role and mode fields are independent or combined" },
+        { "turn": "combined_analysis_and_realworld_ask", "type": "llm_graded", "check": "builds combined partition summary table showing role × mode combinations" },
+        { "turn": "combined_analysis_and_realworld_ask", "type": "llm_graded", "check": "shows overlapping sets diagram (Venn-style)" },
+        { "turn": "combined_analysis_and_realworld_ask", "type": "llm_graded", "check": "identifies valid combos (Admin+normal, Admin+maintenance, Editor+normal, Viewer+normal) and invalid combos (Editor+maintenance, Viewer+maintenance)" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table covers both valid and invalid combinations, each row shows both role AND mode" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "EP03",
+      "type": "multi_turn",
+      "name": "EP: boolean/binary partition",
+      "turns": [
+        { "role": "user", "content": "Premium subscribers can download content in HD quality. Free users can only stream in standard quality and cannot download.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "B", "label": "workflow_selection" },
+        { "role": "assistant", "label": "partition_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "partition_confirm" },
+        { "role": "assistant", "label": "realworld_ask" },
+        { "role": "user", "content": "90% of users are Free. Premium users download 3-4 times per week.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "partition_ask", "type": "llm_graded", "check": "both Premium and Free are treated as valid partitions with different behaviors, Free is NOT classified as invalid" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table shows different expected behaviors for each subscription type: HD/download for Premium, Standard/no-download for Free" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "EP04",
+      "type": "single_turn",
+      "name": "EP: field with many categories (routing detection)",
+      "prompt": "Supported file upload types: PNG, JPG, GIF, SVG for images; MP4, AVI, MOV for video; PDF, DOCX for documents. Maximum file size is 10 MB for images, 100 MB for video, and 25 MB for documents. Unsupported types should show an error.",
+      "expected_output": "Should detect multi-condition (file type EP + file size BVA) and recommend workflow C, or if user selects B, group types by category not individual extension",
+      "assertions": [
+        { "type": "llm_graded", "check": "recognizes this may be multi-condition because file type and file size interact" },
+        { "type": "llm_graded", "check": "if recommending EP, groups file types into meaningful category partitions (Image, Video, Document, Unsupported) rather than one partition per extension" }
+      ]
+    },
+
+    {
+      "id": "MC01",
+      "type": "multi_turn",
+      "name": "Multi-Condition: 2 conditions — Decision Table",
+      "turns": [
+        { "role": "user", "content": "Discount eligibility: customer must be a Gold or Platinum member and purchase amount must be at least 1,000 THB. Gold members get 10% discount, Platinum gets 15%. Non-qualifying members or purchases under 1,000 THB get no discount.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" },
+        { "role": "assistant", "label": "condition_ask" },
+        { "role": "user", "content": "Yes, 2 conditions correct", "label": "condition_confirm" },
+        { "role": "assistant", "label": "per_condition_analysis" },
+        { "role": "user", "content": "1", "label": "strategy_decision_table" },
+        { "role": "assistant", "label": "decision_table_and_realworld_ask" },
+        { "role": "user", "content": "Membership: Most are Gold, 20% Platinum. Amount: Average 2,500 THB, small purchases 300 THB.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "condition_ask", "type": "llm_graded", "check": "identifies C1: membership type (EP) and C2: purchase amount (BVA)" },
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_contains", "value": "C1-UT" },
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_contains", "value": "C2-UT" },
+        { "turn": "per_condition_analysis", "type": "llm_graded", "check": "shows Test Value Summary table collecting all values from both conditions" },
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_not_contains", "value": "TS-01" },
+        { "turn": "decision_table_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "R1" },
+        { "turn": "decision_table_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "R4" },
+        { "turn": "decision_table_and_realworld_ask", "type": "llm_graded", "check": "decision table has 2^2 = 4 rules showing V/I combinations with expected outcomes" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "TS-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "ATS-01" },
+        { "turn": "final_output", "type": "llm_graded", "check": "merged tables include Technique column (e.g., C1:EP, C2:BVA) and Rule column (R1-R4)" },
+        { "turn": "final_output", "type": "llm_graded", "check": "each scenario varies ONE condition while others use typical valid value" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "TS-01" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "ATS-01" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "Workflow C" }
+      ]
+    },
+    {
+      "id": "MC02",
+      "type": "multi_turn",
+      "name": "Multi-Condition: 3 conditions — Decision Table",
+      "turns": [
+        { "role": "user", "content": "Insurance eligibility: applicant must be 25–60 years old, annual income at least 500,000 THB, and health status must be \"Healthy\" or \"Minor Condition\". Applicants with \"Serious Condition\" are rejected regardless of other criteria.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" },
+        { "role": "assistant", "label": "condition_ask" },
+        { "role": "user", "content": "Yes, 3 conditions correct", "label": "condition_confirm" },
+        { "role": "assistant", "label": "per_condition_analysis" },
+        { "role": "user", "content": "1", "label": "strategy_decision_table" },
+        { "role": "assistant", "label": "decision_table_and_realworld_ask" },
+        { "role": "user", "content": "Age: most 30-50. Income: most 600K-1M. Health: 80% Healthy, 15% Minor, 5% Serious.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "condition_ask", "type": "llm_graded", "check": "identifies C1: age (BVA 25-60), C2: income (BVA min 500,000), C3: health status (EP)" },
+        { "turn": "decision_table_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "R8" },
+        { "turn": "decision_table_and_realworld_ask", "type": "llm_graded", "check": "generates 2^3 = 8 rules (R1-R8) with all V/I combinations" },
+        { "turn": "final_output", "type": "llm_graded", "check": "Technique column shows which condition is varied, all three input columns present in every row" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "MC03",
+      "type": "multi_turn",
+      "name": "Multi-Condition: 2 conditions — Sequential strategy",
+      "turns": [
+        { "role": "user", "content": "Withdrawal rules: customer must have an active account status, and withdrawal amount must be between 100 and 50,000 THB per transaction.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" },
+        { "role": "assistant", "label": "condition_ask" },
+        { "role": "user", "content": "Yes, 2 conditions correct", "label": "condition_confirm" },
+        { "role": "assistant", "label": "per_condition_analysis" },
+        { "role": "user", "content": "2", "label": "strategy_sequential" },
+        { "role": "assistant", "label": "sequence_order_ask" },
+        { "role": "user", "content": "1", "label": "sequence_order_confirm" },
+        { "role": "assistant", "label": "flowchart_and_realworld_ask" },
+        { "role": "user", "content": "Status: most Active, some Suspended. Amount: typical 1000-5000 THB, some try 60000.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "sequence_order_ask", "type": "deterministic", "check": "response_contains_question_mark" },
+        { "turn": "sequence_order_ask", "type": "llm_graded", "check": "asks user to specify which condition is checked first" },
+        { "turn": "flowchart_and_realworld_ask", "type": "llm_graded", "check": "draws sequential flowchart showing gates: check status first, then amount" },
+        { "turn": "flowchart_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "START" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "TS-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "Reached" },
+        { "turn": "final_output", "type": "llm_graded", "check": "invalid-at-gate-1 rows use — for unchecked condition columns" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "Rule" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "MC04",
+      "type": "multi_turn",
+      "name": "Multi-Condition: all-numeric inputs",
+      "turns": [
+        { "role": "user", "content": "Parcel shipping rate: weight must be 0.1–30 kg, and longest dimension must be 10–150 cm. Parcels outside either range are rejected.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" },
+        { "role": "assistant", "label": "condition_ask" },
+        { "role": "user", "content": "Yes, 2 conditions correct", "label": "condition_confirm" },
+        { "role": "assistant", "label": "per_condition_analysis" },
+        { "role": "user", "content": "1", "label": "strategy_decision_table" },
+        { "role": "assistant", "label": "decision_table_and_realworld_ask" },
+        { "role": "user", "content": "Typical parcels: 2 kg / 30 cm, 5 kg / 60 cm. Oversized: 35 kg or 200 cm.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "condition_ask", "type": "llm_graded", "check": "both conditions classified as BVA (both numeric with ranges)" },
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_contains", "value": "C1-UT" },
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_contains", "value": "C2-UT" },
+        { "turn": "decision_table_and_realworld_ask", "type": "deterministic", "check": "response_contains", "value": "R4" },
+        { "turn": "final_output", "type": "llm_graded", "check": "merged TS table varies one condition at a time" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "MC05",
+      "type": "multi_turn",
+      "name": "Multi-Condition: user changes strategy mid-workflow",
+      "turns": [
+        { "role": "user", "content": "Free trial eligibility: user must be a new customer (no previous account) and must select either Basic or Standard plan (Premium is excluded from trial).", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "C", "label": "workflow_selection" },
+        { "role": "assistant", "label": "condition_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "condition_confirm" },
+        { "role": "assistant", "label": "per_condition_analysis" },
+        { "role": "user", "content": "2", "label": "strategy_sequential" },
+        { "role": "assistant", "label": "sequential_result" },
+        { "role": "user", "content": "Actually, can we switch to Decision Table instead?", "label": "strategy_change" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "per_condition_analysis", "type": "deterministic", "check": "response_contains", "value": "C1-UT" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "R1" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "Rule" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "Reached" },
+        { "turn": "final_output", "type": "llm_graded", "check": "per-condition unit tests (C1-UTxx, C2-UTxx) are preserved from before strategy change" }
+      ],
+      "final_assertions": []
+    },
+
+    {
+      "id": "ST01",
+      "type": "multi_turn",
+      "name": "State Transition: simple linear lifecycle",
+      "turns": [
+        { "role": "user", "content": "Order lifecycle: New → Processing → Shipped → Delivered. Orders cannot skip states or go backwards.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "D", "label": "workflow_selection" },
+        { "role": "assistant", "label": "state_ask" },
+        { "role": "user", "content": "Yes, 4 states correct", "label": "state_confirm" },
+        { "role": "assistant", "label": "diagrams_and_scenarios" },
+        { "role": "user", "content": "Orders are placed daily. Processing takes 1-2 days. Shipping takes 3-5 days.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "state_ask", "type": "llm_graded", "check": "identifies 4 states (New, Processing, Shipped, Delivered), marks New as Initial and Delivered as Final" },
+        { "turn": "state_ask", "type": "llm_graded", "check": "shows state table with Initial?/Final? columns" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "draws state transition diagram with box-and-arrow ASCII" },
+        { "turn": "diagrams_and_scenarios", "type": "deterministic", "check": "response_contains", "value": "State Transition Matrix" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "matrix shows — for invalid/backward transitions" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "identifies valid transitions (3), invalid transitions, and at least 1 path test" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "UT-01" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_contains", "value": "AT-01" },
+        { "turn": "final_output", "type": "llm_graded", "check": "UT table has Current State, Event, New State columns; includes both valid and invalid transitions" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "Workflow D" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "State Transition Matrix" }
+      ]
+    },
+    {
+      "id": "ST02",
+      "type": "multi_turn",
+      "name": "State Transition: branches and loops",
+      "turns": [
+        { "role": "user", "content": "Leave request process:\n- Employee creates a request (Draft)\n- Employee submits → status becomes Pending\n- Manager reviews: can Approve or Reject\n- If Rejected, employee can Edit and resubmit (back to Pending)\n- If Approved, HR processes it → Completed\n- Employee can Cancel a Draft or Pending request at any time", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "D", "label": "workflow_selection" },
+        { "role": "assistant", "label": "state_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "state_confirm" },
+        { "role": "assistant", "label": "diagrams_and_scenarios" },
+        { "role": "user", "content": "Most requests approved. 10% rejected, usually resubmitted once. Cancellations rare.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "state_ask", "type": "llm_graded", "check": "identifies 6 states: Draft, Pending, Approved, Rejected, Completed, Cancelled — with Draft=Initial, Completed+Cancelled=Final" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "lists 7 transitions including the Rejected→Pending loop and Cancel from Draft+Pending" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "does NOT add transitions not stated in requirement (e.g., Approved→Cancelled)" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "state diagram shows loop and branching, matrix shows Cancel valid from Draft+Pending only" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "path tests include happy path, rejection+resubmit path, and cancel path" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "ST03",
+      "type": "multi_turn",
+      "name": "State Transition: minimal two-state toggle",
+      "turns": [
+        { "role": "user", "content": "Feature toggle: a feature can be Enabled or Disabled. Admin can toggle between states.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "D", "label": "workflow_selection" },
+        { "role": "assistant", "label": "state_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "state_confirm" },
+        { "role": "assistant", "label": "diagrams_and_scenarios" },
+        { "role": "user", "content": "Features toggled a few times during rollout. Usually enabled permanently after testing.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "state_ask", "type": "llm_graded", "check": "identifies 2 states (Enabled, Disabled), neither marked as Final since both can transition to each other" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "2 valid transitions, 2x2 matrix with both cells valid, no invalid transitions possible" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "path test shows toggle sequence" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "ST04",
+      "type": "multi_turn",
+      "name": "State Transition: guard conditions",
+      "turns": [
+        { "role": "user", "content": "Payment status: Unpaid → Paid (when full amount received), Unpaid → Partially Paid (when partial amount received), Partially Paid → Paid (when remaining amount received), Paid → Refunded (when refund requested within 30 days). Refunded is final.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "D", "label": "workflow_selection" },
+        { "role": "assistant", "label": "state_ask" },
+        { "role": "user", "content": "Yes, correct", "label": "state_confirm" },
+        { "role": "assistant", "label": "diagrams_and_scenarios" },
+        { "role": "user", "content": "Most payments full upfront. Partial for large orders. Refunds about 5%.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "state_ask", "type": "llm_graded", "check": "identifies 4 states: Unpaid, Partially Paid, Paid, Refunded — with Refunded as Final" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "captures guard conditions in transitions (full amount, partial amount, within 30 days)" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "invalid transitions include Refunded→Paid and Partially Paid→Refunded" },
+        { "turn": "diagrams_and_scenarios", "type": "llm_graded", "check": "does NOT assume Paid→Unpaid is valid" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+
+    {
+      "id": "CR01",
+      "type": "multi_turn",
+      "name": "Common: Thai language requirement",
+      "turns": [
+        { "role": "user", "content": "ระบบรับสมัครสมาชิก ผู้สมัครต้องมีอายุระหว่าง 18-60 ปี", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "1", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "ผู้สมัครส่วนใหญ่อายุ 25-40 ปี มีบางคนอายุ 15 ปีมาลองสมัคร", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "boundary diagram labels are in Thai (e.g., ✓ ได้ / ✗ ไม่ได้ instead of ✓ Valid / ✗ Invalid)" },
+        { "turn": "final_output", "type": "llm_graded", "check": "test case names and descriptions are in Thai" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "Valid" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" }
+      ]
+    },
+    {
+      "id": "CR03",
+      "type": "multi_turn",
+      "name": "Common: only pauses at ⏸ steps",
+      "turns": [
+        { "role": "user", "content": "The system accepts deposits between 500 and 100,000 THB.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "3", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" }
+      ],
+      "turn_assertions": [
+        { "turn": "unit_question", "type": "deterministic", "check": "response_not_contains", "value": "UT-01" },
+        { "turn": "unit_question", "type": "deterministic", "check": "response_contains_question_mark" },
+        { "turn": "boundaries_and_realworld_ask", "type": "llm_graded", "check": "presents boundary extraction, boundary values, diagram, AND test possibilities together in one response without pausing between them" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_contains_question_mark" },
+        { "turn": "boundaries_and_realworld_ask", "type": "deterministic", "check": "response_not_contains", "value": "UT-01" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "CR05",
+      "type": "multi_turn",
+      "name": "Common: TC-ID numbering and Type column",
+      "turns": [
+        { "role": "user", "content": "Age verification: users must be 20 years or older.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" },
+        { "role": "assistant", "label": "unit_question" },
+        { "role": "user", "content": "1", "label": "unit_answer" },
+        { "role": "assistant", "label": "boundaries_and_realworld_ask" },
+        { "role": "user", "content": "Most users are 25-40. Some teenagers try at 16.", "label": "realworld_data" },
+        { "role": "assistant", "label": "final_output" }
+      ],
+      "turn_assertions": [
+        { "turn": "final_output", "type": "deterministic", "check": "response_matches_regex", "pattern": "UT-0[1-9]" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_matches_regex", "pattern": "AT-0[1-9]" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "| Pass" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "| Fail" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "| Positive" },
+        { "turn": "final_output", "type": "deterministic", "check": "response_not_contains", "value": "| Negative" }
+      ],
+      "final_assertions": [
+        { "type": "deterministic", "check": "file_exists", "pattern": "test-cases/*.md" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "UT-01" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "AT-01" },
+        { "type": "deterministic", "check": "file_matches_regex", "file": "test-cases/*.md", "pattern": "^# Test Cases:" },
+        { "type": "deterministic", "check": "file_contains", "file": "test-cases/*.md", "value": "Generated by wlb-test-engineer" }
+      ]
+    },
+    {
+      "id": "CR09",
+      "type": "multi_turn",
+      "name": "Common: does not assume unstated rules",
+      "turns": [
+        { "role": "user", "content": "The discount applies to orders over 500 THB.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" },
+        { "role": "user", "content": "A", "label": "workflow_selection" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "only identifies the stated condition (order amount > 500), does NOT invent additional rules like maximum discount or membership requirement" },
+        { "turn": "analysis", "type": "llm_graded", "check": "may ask clarifying question about whether 500 THB is included or excluded, but does not assume" }
+      ],
+      "final_assertions": []
+    },
+    {
+      "id": "CR10",
+      "type": "multi_turn",
+      "name": "Common: informal language extraction",
+      "turns": [
+        { "role": "user", "content": "We need to check that people aren't too young or too old for the gym membership. I think the rules say something like 16 to 70 years old.", "label": "requirement" },
+        { "role": "assistant", "label": "analysis" }
+      ],
+      "turn_assertions": [
+        { "turn": "analysis", "type": "llm_graded", "check": "extracts testable condition: age range 16-70 from informal language" },
+        { "turn": "analysis", "type": "llm_graded", "check": "does not dismiss the informal language, treats it as valid requirement" },
+        { "turn": "analysis", "type": "llm_graded", "check": "may flag uncertainty about the 'I think' phrasing, asking user to confirm the range" }
+      ],
+      "final_assertions": []
+    }
+  ]
+}
